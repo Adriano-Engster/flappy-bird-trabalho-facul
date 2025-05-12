@@ -38,7 +38,7 @@ Se você ainda não tem o Python instalado, baixe e instale a versão mais recen
 Clone o repositório ou baixe o arquivo ZIP do jogo:
 
 ```bash
-git clone https://github.com/seu-usuario/flappy-bird-futuro.git
+git clone https://github.com/adriano-engster/flappy-bird-futuro.git
 cd flappy-bird-futuro
 ```
 
