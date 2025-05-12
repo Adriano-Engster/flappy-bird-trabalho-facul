@@ -319,28 +319,53 @@ class Game:
                 self.screen.blit(time_text, (self.screen_width - 150, 30))
             
             else:
-                # Tela de Game Over
-                font = pygame.font.Font(None, 74)
-                game_over_text = font.render('Game Over', True, self.WHITE)
-                score_text = font.render(f'Score: {self.score}', True, self.WHITE)
-                restart_text = font.render('Pressione Espaço', True, self.WHITE)
+                # Tela de Game Over estilo GTA 5
+                # Fundo escuro semi-transparente
+                overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 180))  # Preto semi-transparente
+                self.screen.blit(overlay, (0, 0))
                 
-                # Adicionar texto de tempo esgotado se aplicável
+                # Texto "MORRI ;-;" em vermelho grande
+                font_wasted = pygame.font.Font(None, 120)
+                wasted_text = font_wasted.render('MORRI ;-;', True, (255, 0, 0))  # Vermelho
+                
+                # Adicionar efeito de sombra ao texto
+                shadow_surface = pygame.Surface(wasted_text.get_size(), pygame.SRCALPHA)
+                shadow_surface.fill((0, 0, 0, 0))
+                shadow_surface.blit(wasted_text, (4, 4))
+                shadow_surface.set_alpha(150)
+                
+                # Centralizar o texto na tela
+                wasted_rect = wasted_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                shadow_rect = shadow_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                
+                # Desenhar sombra e texto
+                self.screen.blit(shadow_surface, shadow_rect)
+                self.screen.blit(wasted_text, wasted_rect)
+                
+                # Mostrar pontuação
+                font_score = pygame.font.Font(None, 60)
+                score_text = font_score.render(f'Pontuação: {self.score}', True, self.WHITE)
+                score_rect = score_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 50))
+                self.screen.blit(score_text, score_rect)
+                
+                # Texto para reiniciar
+                font_restart = pygame.font.Font(None, 36)
+                restart_text = font_restart.render('Pressione ESPAÇO para tentar novamente', True, self.WHITE)
+                restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 120))
+                self.screen.blit(restart_text, restart_rect)
+                
+                # Mostrar causa da morte
+                cause_text = ""
                 if remaining_time <= 0:
-                    time_up_text = font.render('Tempo Esgotado!', True, self.WHITE)
-                    self.screen.blit(time_up_text, 
-                                   (self.screen_width // 2 - time_up_text.get_width() // 2, 
-                                    self.screen_height // 2 - 170))
+                    cause_text = "Tempo Esgotado!"
+                else:
+                    cause_text = "Você bateu em um prédio!"
                 
-                self.screen.blit(game_over_text, 
-                               (self.screen_width // 2 - game_over_text.get_width() // 2, 
-                                self.screen_height // 2 - 100))
-                self.screen.blit(score_text, 
-                               (self.screen_width // 2 - score_text.get_width() // 2, 
-                                self.screen_height // 2))
-                self.screen.blit(restart_text, 
-                               (self.screen_width // 2 - restart_text.get_width() // 2, 
-                                self.screen_height // 2 + 100))
+                font_cause = pygame.font.Font(None, 40)
+                cause_rendered = font_cause.render(cause_text, True, self.WHITE)
+                cause_rect = cause_rendered.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 180))
+                self.screen.blit(cause_rendered, cause_rect)
             
             pygame.display.flip()
             self.clock.tick(60)
@@ -864,28 +889,53 @@ class Game:
                 self.screen.blit(time_text, (self.screen_width - 150, 30))
             
             else:
-                # Tela de Game Over
-                font = pygame.font.Font(None, 74)
-                game_over_text = font.render('Game Over', True, self.WHITE)
-                score_text = font.render(f'Score: {self.score}', True, self.WHITE)
-                restart_text = font.render('Pressione Espaço', True, self.WHITE)
+                # Tela de Game Over estilo GTA 5
+                # Fundo escuro semi-transparente
+                overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 180))  # Preto semi-transparente
+                self.screen.blit(overlay, (0, 0))
                 
-                # Adicionar texto de tempo esgotado se aplicável
+                # Texto "SE FODEU" em vermelho grande
+                font_wasted = pygame.font.Font(None, 120)
+                wasted_text = font_wasted.render('MORRI ;-;', True, (255, 0, 0))  # Vermelho
+                
+                # Adicionar efeito de sombra ao texto
+                shadow_surface = pygame.Surface(wasted_text.get_size(), pygame.SRCALPHA)
+                shadow_surface.fill((0, 0, 0, 0))
+                shadow_surface.blit(wasted_text, (4, 4))
+                shadow_surface.set_alpha(150)
+                
+                # Centralizar o texto na tela
+                wasted_rect = wasted_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                shadow_rect = shadow_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                
+                # Desenhar sombra e texto
+                self.screen.blit(shadow_surface, shadow_rect)
+                self.screen.blit(wasted_text, wasted_rect)
+                
+                # Mostrar pontuação
+                font_score = pygame.font.Font(None, 60)
+                score_text = font_score.render(f'Pontuação: {self.score}', True, self.WHITE)
+                score_rect = score_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 50))
+                self.screen.blit(score_text, score_rect)
+                
+                # Texto para reiniciar
+                font_restart = pygame.font.Font(None, 36)
+                restart_text = font_restart.render('Pressione ESPAÇO para tentar novamente', True, self.WHITE)
+                restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 120))
+                self.screen.blit(restart_text, restart_rect)
+                
+                # Mostrar causa da morte
+                cause_text = ""
                 if remaining_time <= 0:
-                    time_up_text = font.render('Tempo Esgotado!', True, self.WHITE)
-                    self.screen.blit(time_up_text, 
-                                   (self.screen_width // 2 - time_up_text.get_width() // 2, 
-                                    self.screen_height // 2 - 170))
+                    cause_text = "Tempo Esgotado!"
+                else:
+                    cause_text = "Você bateu em um prédio!"
                 
-                self.screen.blit(game_over_text, 
-                               (self.screen_width // 2 - game_over_text.get_width() // 2, 
-                                self.screen_height // 2 - 100))
-                self.screen.blit(score_text, 
-                               (self.screen_width // 2 - score_text.get_width() // 2, 
-                                self.screen_height // 2))
-                self.screen.blit(restart_text, 
-                               (self.screen_width // 2 - restart_text.get_width() // 2, 
-                                self.screen_height // 2 + 100))
+                font_cause = pygame.font.Font(None, 40)
+                cause_rendered = font_cause.render(cause_text, True, self.WHITE)
+                cause_rect = cause_rendered.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 180))
+                self.screen.blit(cause_rendered, cause_rect)
             
             pygame.display.flip()
             self.clock.tick(60)
