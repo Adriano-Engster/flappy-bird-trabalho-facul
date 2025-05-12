@@ -1,0 +1,162 @@
+
+
+
+          
+# Documentação do Jogo Flappy Bird Futuro
+
+## Índice
+1. [Introdução](#introdução)
+2. [Requisitos do Sistema](#requisitos-do-sistema)
+3. [Instalação](#instalação)
+4. [Como Jogar](#como-jogar)
+5. [Configurações](#configurações)
+6. [Personagens](#personagens)
+7. [Resolução de Problemas](#resolução-de-problemas)
+
+## Introdução
+
+Flappy Bird Futuro é uma versão moderna do clássico jogo Flappy Bird, com gráficos melhorados, personagens animados, músicas e várias opções de personalização. O objetivo do jogo é guiar seu personagem através de obstáculos, tentando alcançar a maior pontuação possível.
+
+## Requisitos do Sistema
+
+- **Sistema Operacional**: macOS, Windows ou Linux
+- **Python**: Versão 3.6 ou superior
+- **Bibliotecas Python**:
+  - pygame
+  - pillow (PIL)
+- **Espaço em Disco**: Aproximadamente 50MB
+- **Memória RAM**: Mínimo 2GB
+
+## Instalação
+
+### Passo 1: Instalar Python
+
+Se você ainda não tem o Python instalado, baixe e instale a versão mais recente do [site oficial do Python](https://www.python.org/downloads/).
+
+### Passo 2: Baixar o Jogo
+
+Clone o repositório ou baixe o arquivo ZIP do jogo:
+
+```bash
+git clone https://github.com/seu-usuario/flappy-bird-futuro.git
+cd flappy-bird-futuro
+```
+
+### Passo 3: Criar um Ambiente Virtual (Recomendado)
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # No macOS/Linux
+# ou
+venv\Scripts\activate  # No Windows
+```
+
+### Passo 4: Instalar Dependências
+
+```bash
+pip3 install pygame pillow
+```
+
+### Passo 5: Executar o Jogo
+
+```bash
+python3 main.py
+```
+
+## Como Jogar
+
+### Controles Básicos
+
+- **Espaço/Clique do Mouse**: Faz o personagem pular
+- **ESC**: Pausa o jogo/Retorna ao menu
+- **R**: Reinicia o jogo após perder
+
+### Objetivo
+
+O objetivo do jogo é navegar com seu personagem através dos canos sem colidir com eles. Cada cano ultrapassado adiciona um ponto à sua pontuação. Tente alcançar a maior pontuação possível!
+
+### Mecânica do Jogo
+
+1. O personagem cai constantemente devido à gravidade
+2. Pressione espaço ou clique para fazer o personagem subir
+3. Evite colidir com os canos e com o chão
+4. A dificuldade aumenta progressivamente com o tempo
+
+## Configurações
+
+Acesse o menu de configurações a partir da tela inicial para personalizar sua experiência:
+
+### Som e Música
+
+- **Som**: Ativa/Desativa todos os efeitos sonoros
+- **Volume**: Ajusta o volume da música e efeitos (10% a 100%)
+- **Música**: Alterna entre as três músicas disponíveis:
+  - Fight for the Future
+  - Lady of the 80's
+  - Platform Shoes (8-bit)
+
+### Vídeo
+
+- **Resolução**: Escolha entre várias resoluções (800x600 até 1920x1080)
+- **Tela Cheia**: Ativa/Desativa o modo de tela cheia
+
+### Tema
+
+- **Tema**: Alterna entre tema claro e escuro
+- **Background**: Escolha entre diferentes cenários de fundo
+
+## Personagens
+
+O jogo inclui vários personagens que podem ser selecionados no menu de personagens:
+
+- **Bird**: O pássaro clássico
+- **Super-Homem**: Personagem animado com capa
+- **Outros personagens**: Explore o menu para descobrir todos!
+
+Para adicionar novos personagens:
+
+1. Coloque arquivos de imagem (PNG, JPG) ou GIF na pasta `imgs/person/`
+2. Reinicie o jogo
+3. Os novos personagens aparecerão automaticamente no menu de seleção
+
+## Resolução de Problemas
+
+### Erro: "No module named 'pygame'"
+
+**Solução**: Instale o pygame usando:
+```bash
+pip3 install pygame
+```
+
+### Erro: "No module named 'PIL'"
+
+**Solução**: Instale o Pillow usando:
+```bash
+pip3 install pillow
+```
+
+### Erro: "Erro ao carregar personagens"
+
+**Solução**: Verifique se a pasta `imgs/person/` existe e contém pelo menos uma imagem válida.
+
+### Erro: "Erro ao carregar backgrounds"
+
+**Solução**: Verifique se a pasta `imgs/backgrounds/` existe e contém pelo menos uma imagem válida.
+
+### Problemas com Ambiente Gerenciado Externamente
+
+Se você receber o erro "externally-managed-environment" ao instalar pacotes, use um ambiente virtual:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip3 install pygame pillow
+```
+
+## Divirta-se!
+
+Agora você está pronto para jogar Flappy Bird Futuro! Desafie seus amigos para ver quem consegue a maior pontuação e explore todas as opções de personalização disponíveis.
+
+Para sugestões, bugs ou contribuições, entre em contato com a equipe de desenvolvimento.
+
+        Too many current requests. Your queue position is 1. Please wait for a while or switch to other models for a smoother experience.
