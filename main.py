@@ -246,28 +246,33 @@ class Game:
         countdown_start = pygame.time.get_ticks()
         countdown_active = True
         
-        # Inicializar timer de 45 segundos (só começa após a contagem regressiva)
-        self.game_time = 45000  # 45 segundos em milissegundos
+        # Inicializar timer de 25 segundos (só começa após a contagem regressiva)
+        self.game_time = 25000  # Reduzido para 25 segundos (ainda mais curto)
         self.start_time = None  # Será definido após a contagem regressiva
         
-        # Inicializar obstáculos (prédios) com valores iniciais mais fáceis
-        pipe_spawn_interval = 2000  # Intervalo maior no início (2 segundos)
+        # Inicializar obstáculos (prédios) com valores iniciais mais difíceis
+        pipe_spawn_interval = 1200  # Reduzido para 1200 (spawn mais frequente)
         last_spawn_time = 0  # Será definido após a contagem regressiva
         
-        # Começar com um espaço maior entre os prédios para facilitar
-        gap_size = 250  # Espaço maior entre os prédios no início
+        # Começar com um espaço menor entre os prédios
+        gap_size = 160  # Reduzido para 160 (espaço ainda menor)
         
         # Variáveis para controle de dificuldade progressiva
-        difficulty_increase_rate = 3  # A cada quantos pontos a dificuldade aumenta (reduzido para aumentar mais rápido)
-        min_gap_size = 170  # Tamanho mínimo do espaço entre prédios (reduzido para maior dificuldade)
-        min_spawn_interval = 1000  # Intervalo mínimo de spawn (reduzido para maior dificuldade)
+        difficulty_increase_rate = 1  # Mantido em 1 (aumenta dificuldade a cada ponto)
+        min_gap_size = 110  # Reduzido para 110 (espaço mínimo extremamente desafiador)
+        min_spawn_interval = 500  # Reduzido para 500 (spawn muito rápido)
         
-        # Velocidade inicial mais lenta
-        pipe_speed = 2
-        max_pipe_speed = 6  # Aumentado para maior dificuldade
+        # Velocidade inicial mais rápida
+        pipe_speed = 5  # Aumentado para 5 (velocidade inicial muito alta)
+        max_pipe_speed = 12  # Aumentado para 12 (velocidade máxima extrema)
         
         # Pontuação alvo para "zerar" o jogo
         target_score = 30  # Definir uma pontuação alvo para considerar o jogo "zerado"
+        
+        # Inicializar valores atuais de dificuldade 
+        current_pipe_speed = pipe_speed
+        current_gap_size = gap_size
+        current_spawn_interval = pipe_spawn_interval
         
         while True:
             # Desenhar o background atual
@@ -337,30 +342,83 @@ class Game:
                 # Atualizar pássaro
                 self.bird.update()
                 
+                # Ajustar dificuldade com base no tempo restante
+                # Aumentar a dificuldade progressivamente em diferentes patamares de tempo
+                elapsed_seconds = (self.game_time - remaining_time) // 1000
+                
+                # Fator de dificuldade baseado no tempo decorrido
+                difficulty_factor = 1.0  # Dificuldade base
+                
+                if elapsed_seconds >= 40:
+                    # 90% mais difícil após 40 segundos
+                    difficulty_factor = 1.9
+                elif elapsed_seconds >= 30:
+                    # 75% mais difícil após 30 segundos
+                    difficulty_factor = 1.75
+                elif elapsed_seconds >= 20:
+                    # 55% mais difícil após 20 segundos
+                    difficulty_factor = 1.55
+                elif elapsed_seconds >= 10:
+                    # 30% mais difícil após 10 segundos
+                    difficulty_factor = 1.3
+                
+                # Aplicar o fator de dificuldade à velocidade atual
+                current_pipe_speed = pipe_speed * difficulty_factor
+                
+                # Aplicar o fator de dificuldade ao tamanho do gap para os próximos canos
+                current_gap_size = max(min_gap_size, int(gap_size / difficulty_factor))
+                
+                # Aplicar o fator de dificuldade ao intervalo de spawn para os próximos canos
+                current_spawn_interval = max(min_spawn_interval, int(pipe_spawn_interval / difficulty_factor))
+                
                 # Gerar novos prédios
                 current_time = pygame.time.get_ticks()
-                if current_time - last_spawn_time > pipe_spawn_interval:
-                    # Criar um novo cano com a velocidade atual
-                    new_pipe = Pipe(self.screen_width, self.screen_height, gap_size)
-                    new_pipe.speed = pipe_speed
+                if current_time - last_spawn_time > current_spawn_interval:  # Usar o intervalo ajustado
+                    # Criar um novo cano com a velocidade atual e gap ajustado
+                    new_pipe = Pipe(self.screen_width, self.screen_height, current_gap_size)  # Usar o gap ajustado
+                    new_pipe.speed = current_pipe_speed  # Usar a velocidade ajustada
                     self.pipes.append(new_pipe)
                     last_spawn_time = current_time
                     
                     # Ajustar dificuldade com base na pontuação
                     if self.score > 0 and self.score % difficulty_increase_rate == 0:
                         # Reduzir o tamanho do gap gradualmente
-                        gap_size = max(min_gap_size, gap_size - 8)
+                        gap_size = max(min_gap_size, gap_size - 18)  # Aumentado para 18
                         
                         # Reduzir o intervalo de spawn gradualmente
-                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 100)
+                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 250)  # Aumentado para 250
                         
                         # Aumentar a velocidade gradualmente
-                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.3)
+                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.9)  # Aumentado para 0.9
                 
                 # Ajustar dificuldade com base no tempo restante
-                # Aumentar a dificuldade mais rapidamente quando o tempo estiver acabando
-                time_factor = max(0, 1 - (remaining_time / self.game_time))  # 0 no início, 1 no final
-                current_pipe_speed = pipe_speed + (time_factor * 1.5)  # Velocidade aumenta com o tempo
+                # Aumentar a dificuldade progressivamente em diferentes patamares de tempo
+                elapsed_seconds = (self.game_time - remaining_time) // 1000
+                
+                # Fator de dificuldade baseado no tempo decorrido
+                difficulty_factor = 1.0  # Dificuldade base
+                
+                if elapsed_seconds >= 40:
+                    # 90% mais difícil após 40 segundos
+                    difficulty_factor = 1.9
+                elif elapsed_seconds >= 30:
+                    # 75% mais difícil após 30 segundos
+                    difficulty_factor = 1.75
+                elif elapsed_seconds >= 20:
+                    # 55% mais difícil após 20 segundos
+                    difficulty_factor = 1.55
+                elif elapsed_seconds >= 10:
+                    # 30% mais difícil após 10 segundos
+                    difficulty_factor = 1.3
+                
+                # Aplicar o fator de dificuldade à velocidade atual
+                current_pipe_speed = pipe_speed * difficulty_factor
+                
+                # Aplicar o fator de dificuldade ao tamanho do gap para os próximos canos
+                current_gap_size = max(min_gap_size, int(gap_size / difficulty_factor))
+                
+                # Aplicar o fator de dificuldade ao intervalo de spawn para os próximos canos
+                current_spawn_interval = max(min_spawn_interval, int(pipe_spawn_interval / difficulty_factor))
                 
                 # Atualizar e verificar colisões com canos
                 for pipe in self.pipes[:]:
@@ -917,35 +975,7 @@ class Game:
         for obj in self.object_positions:
             self.screen.blit(self.objects[obj['name']], (obj['x'], obj['y']))
     
-    def run_game(self):
-        # Inicializar objetos do jogo
-        self.bird = Bird(100, self.screen_height // 2, self)  # Passando a referência do jogo
-        self.pipes = []
-        self.pipe_spawn_timer = 0
-        self.score = 0
-        self.game_over = False
-        
-        # Inicializar timer de 45 segundos
-        self.game_time = 45000  # 45 segundos em milissegundos
-        self.start_time = pygame.time.get_ticks()
-        
-        # Inicializar obstáculos (prédios) com valores iniciais mais fáceis
-        pipe_spawn_interval = 2000  # Intervalo maior no início (2 segundos)
-        last_spawn_time = pygame.time.get_ticks()
-        
-        # Começar com um espaço maior entre os prédios para facilitar
-        gap_size = 250  # Espaço maior entre os prédios no início
-        
-        # Variáveis para controle de dificuldade progressiva
-        difficulty_increase_rate = 5  # A cada quantos pontos a dificuldade aumenta
-        min_gap_size = 180  # Tamanho mínimo do espaço entre prédios
-        min_spawn_interval = 1200  # Intervalo mínimo de spawn
-        
-        # Velocidade inicial mais lenta
-        pipe_speed = 2
-        max_pipe_speed = 5
-        
-        while True:
+
             # Desenhar o background atual
             current_bg = self.update_animated_background(self.settings['background'])
             self.screen.blit(current_bg, (0, 0))
@@ -977,10 +1007,10 @@ class Game:
                 
                 # Gerar novos prédios
                 current_time = pygame.time.get_ticks()
-                if current_time - last_spawn_time > pipe_spawn_interval:
-                    # Criar um novo cano com a velocidade atual
-                    new_pipe = Pipe(self.screen_width, self.screen_height, gap_size)
-                    new_pipe.speed = pipe_speed
+                if current_time - last_spawn_time > pipe_spawn_interval:  # Usar o intervalo ajustado
+                    # Criar um novo cano com a velocidade atual e gap ajustado
+                    new_pipe = Pipe(self.screen_width, self.screen_height, current_gap_size)  # Usar o gap ajustado
+                    new_pipe.speed = current_pipe_speed  # Usar a velocidade ajustada
                     self.pipes.append(new_pipe)
                     last_spawn_time = current_time
                     
