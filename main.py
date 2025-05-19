@@ -250,25 +250,25 @@ class Game:
         self.game_time = 25000  # Reduzido para 25 segundos (ainda mais curto)
         self.start_time = None  # Será definido após a contagem regressiva
         
-        # Inicializar obstáculos (prédios) com valores iniciais mais difíceis
-        pipe_spawn_interval = 1200  # Reduzido para 1200 (spawn mais frequente)
-        last_spawn_time = 0  # Será definido após a contagem regressiva
-        
-        # Começar com um espaço menor entre os prédios
-        gap_size = 160  # Reduzido para 160 (espaço ainda menor)
-        
+        # Inicializar obstáculos (prédios) com valores mais justos
+        pipe_spawn_interval = 1600  # Intervalo inicial mais longo
+        last_spawn_time = 0
+
+        # Espaço inicial maior entre prédios
+        gap_size = 210  # Gap inicial mais largo
+
         # Variáveis para controle de dificuldade progressiva
-        difficulty_increase_rate = 1  # Mantido em 1 (aumenta dificuldade a cada ponto)
-        min_gap_size = 110  # Reduzido para 110 (espaço mínimo extremamente desafiador)
-        min_spawn_interval = 500  # Reduzido para 500 (spawn muito rápido)
-        
-        # Velocidade inicial mais rápida
-        pipe_speed = 5  # Aumentado para 5 (velocidade inicial muito alta)
-        max_pipe_speed = 12  # Aumentado para 12 (velocidade máxima extrema)
-        
+        difficulty_increase_rate = 3  # Dificuldade só aumenta a cada 3 pontos
+        min_gap_size = 140  # Gap mínimo mais justo
+        min_spawn_interval = 900  # Spawn mínimo menos agressivo
+
+        # Velocidade inicial mais baixa
+        pipe_speed = 2.7  # Velocidade inicial mais baixa
+        max_pipe_speed = 5.5  # Velocidade máxima mais justa
+
         # Pontuação alvo para "zerar" o jogo
-        target_score = 30  # Definir uma pontuação alvo para considerar o jogo "zerado"
-        
+        target_score = 30
+
         # Inicializar valores atuais de dificuldade 
         current_pipe_speed = pipe_speed
         current_gap_size = gap_size
@@ -345,32 +345,32 @@ class Game:
                 # Ajustar dificuldade com base no tempo restante
                 # Aumentar a dificuldade progressivamente em diferentes patamares de tempo
                 elapsed_seconds = (self.game_time - remaining_time) // 1000
-                
-                # Fator de dificuldade baseado no tempo decorrido
-                difficulty_factor = 1.0  # Dificuldade base
-                
+
+                # Fator de dificuldade baseado no tempo decorrido (ajustado para padrão de mercado)
+                difficulty_factor = 1.0  # Começa padrão
+
                 if elapsed_seconds >= 40:
-                    # 90% mais difícil após 40 segundos
-                    difficulty_factor = 1.9
+                    # 90% mais difícil após 40 segundos (mercado: leve)
+                    difficulty_factor = 1.25
                 elif elapsed_seconds >= 30:
                     # 75% mais difícil após 30 segundos
-                    difficulty_factor = 1.75
+                    difficulty_factor = 1.18
                 elif elapsed_seconds >= 20:
                     # 55% mais difícil após 20 segundos
-                    difficulty_factor = 1.55
+                    difficulty_factor = 1.12
                 elif elapsed_seconds >= 10:
                     # 30% mais difícil após 10 segundos
-                    difficulty_factor = 1.3
-                
+                    difficulty_factor = 1.06
+
                 # Aplicar o fator de dificuldade à velocidade atual
                 current_pipe_speed = pipe_speed * difficulty_factor
-                
+
                 # Aplicar o fator de dificuldade ao tamanho do gap para os próximos canos
-                current_gap_size = max(min_gap_size, int(gap_size / difficulty_factor))
-                
+                current_gap_size = max(130, int(gap_size / difficulty_factor))  # gap mínimo padrão de mercado
+
                 # Aplicar o fator de dificuldade ao intervalo de spawn para os próximos canos
-                current_spawn_interval = max(min_spawn_interval, int(pipe_spawn_interval / difficulty_factor))
-                
+                current_spawn_interval = max(900, int(pipe_spawn_interval / difficulty_factor))  # intervalo mínimo padrão
+
                 # Gerar novos prédios
                 current_time = pygame.time.get_ticks()
                 if current_time - last_spawn_time > current_spawn_interval:  # Usar o intervalo ajustado
@@ -382,14 +382,9 @@ class Game:
                     
                     # Ajustar dificuldade com base na pontuação
                     if self.score > 0 and self.score % difficulty_increase_rate == 0:
-                        # Reduzir o tamanho do gap gradualmente
-                        gap_size = max(min_gap_size, gap_size - 18)  # Aumentado para 18
-                        
-                        # Reduzir o intervalo de spawn gradualmente
-                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 250)  # Aumentado para 250
-                        
-                        # Aumentar a velocidade gradualmente
-                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.9)  # Aumentado para 0.9
+                        gap_size = max(min_gap_size, gap_size - 12)
+                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 120)
+                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.4)
                 
                 # Ajustar dificuldade com base no tempo restante
                 # Aumentar a dificuldade progressivamente em diferentes patamares de tempo
@@ -399,17 +394,17 @@ class Game:
                 difficulty_factor = 1.0  # Dificuldade base
                 
                 if elapsed_seconds >= 40:
-                    # 90% mais difícil após 40 segundos
-                    difficulty_factor = 1.9
+                    # 90% mais difícil após 40 segundos (reduzido em 15%)
+                    difficulty_factor = 1.62
                 elif elapsed_seconds >= 30:
-                    # 75% mais difícil após 30 segundos
-                    difficulty_factor = 1.75
+                    # 75% mais difícil após 30 segundos (reduzido em 15%)
+                    difficulty_factor = 1.49
                 elif elapsed_seconds >= 20:
-                    # 55% mais difícil após 20 segundos
-                    difficulty_factor = 1.55
+                    # 55% mais difícil após 20 segundos (reduzido em 15%)
+                    difficulty_factor = 1.32
                 elif elapsed_seconds >= 10:
-                    # 30% mais difícil após 10 segundos
-                    difficulty_factor = 1.3
+                    # 30% mais difícil após 10 segundos (reduzido em 15%)
+                    difficulty_factor = 1.10
                 
                 # Aplicar o fator de dificuldade à velocidade atual
                 current_pipe_speed = pipe_speed * difficulty_factor
