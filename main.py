@@ -27,6 +27,8 @@ class Game:
         
         # Estados do jogo
         self.current_state = 'lobby'
+        self.game_over = False
+        self.game_completed = False  # Inicializar o atributo game_completed
         
         # Inicializar backgrounds antes das configurações
         self.backgrounds = {}
@@ -57,9 +59,13 @@ class Game:
         
         # Carregar e iniciar a música de fundo
         try:
-            pygame.mixer.music.load(self.music_list[self.settings['musica_atual']])
-            pygame.mixer.music.set_volume(self.settings['volume'])
-            pygame.mixer.music.play(-1)  # -1 significa repetir infinitamente
+            import os
+            if os.path.exists(self.music_list[self.settings['musica_atual']]):
+                pygame.mixer.music.load(self.music_list[self.settings['musica_atual']])
+                pygame.mixer.music.set_volume(self.settings['volume'])
+                pygame.mixer.music.play(-1)  # -1 significa repetir infinitamente
+            else:
+                print(f"Arquivo de música não encontrado: {self.music_list[self.settings['musica_atual']]}")
         except Exception as e:
             print(f"Erro ao carregar música: {e}")
         
@@ -233,24 +239,86 @@ class Game:
         self.pipe_spawn_timer = 0
         self.score = 0
         self.game_over = False
+        self.game_completed = False
         
-        # Inicializar timer de 45 segundos
+        # Adicionar timer de contagem regressiva de 5 segundos
+        countdown_duration = 5000  # 5 segundos em milissegundos
+        countdown_start = pygame.time.get_ticks()
+        countdown_active = True
+        
+        # Inicializar timer de 45 segundos (só começa após a contagem regressiva)
         self.game_time = 45000  # 45 segundos em milissegundos
-        self.start_time = pygame.time.get_ticks()
+        self.start_time = None  # Será definido após a contagem regressiva
         
-        # Inicializar obstáculos (prédios)
-        pipe_spawn_interval = 1500  # Intervalo em milissegundos
-        last_spawn_time = pygame.time.get_ticks()
+        # Inicializar obstáculos (prédios) com valores iniciais mais fáceis
+        pipe_spawn_interval = 2000  # Intervalo maior no início (2 segundos)
+        last_spawn_time = 0  # Será definido após a contagem regressiva
         
-        # Aumentar o espaço entre os prédios para tornar o jogo mais jogável
-        gap_size = 200  # Espaço entre os prédios
+        # Começar com um espaço maior entre os prédios para facilitar
+        gap_size = 250  # Espaço maior entre os prédios no início
+        
+        # Variáveis para controle de dificuldade progressiva
+        difficulty_increase_rate = 3  # A cada quantos pontos a dificuldade aumenta (reduzido para aumentar mais rápido)
+        min_gap_size = 170  # Tamanho mínimo do espaço entre prédios (reduzido para maior dificuldade)
+        min_spawn_interval = 1000  # Intervalo mínimo de spawn (reduzido para maior dificuldade)
+        
+        # Velocidade inicial mais lenta
+        pipe_speed = 2
+        max_pipe_speed = 6  # Aumentado para maior dificuldade
+        
+        # Pontuação alvo para "zerar" o jogo
+        target_score = 30  # Definir uma pontuação alvo para considerar o jogo "zerado"
         
         while True:
             # Desenhar o background atual
             current_bg = self.update_animated_background(self.settings['background'])
             self.screen.blit(current_bg, (0, 0))
             
-            # Calcular tempo restante
+            # Processar eventos
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == KEYDOWN:
+                    if event.key == K_SPACE:
+                        if not self.game_over and not countdown_active:
+                            self.bird.jump()
+                    elif event.key == K_r and self.game_over:
+                        return
+            
+            # Verificar se a contagem regressiva está ativa
+            if countdown_active:
+                current_time = pygame.time.get_ticks()
+                elapsed_countdown = current_time - countdown_start
+                remaining_countdown = max(0, countdown_duration - elapsed_countdown)
+                
+                # Mostrar contagem regressiva
+                seconds_left = remaining_countdown // 1000 + 1
+                font = pygame.font.Font(None, 150)
+                countdown_text = font.render(str(seconds_left), True, self.WHITE)
+                countdown_rect = countdown_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
+                self.screen.blit(countdown_text, countdown_rect)
+                
+                # Mostrar mensagem "Prepare-se!"
+                font_prepare = pygame.font.Font(None, 50)
+                prepare_text = font_prepare.render("Prepare-se!", True, self.WHITE)
+                prepare_rect = prepare_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 100))
+                self.screen.blit(prepare_text, prepare_rect)
+                
+                # Verificar se a contagem regressiva terminou
+                if remaining_countdown <= 0:
+                    countdown_active = False
+                    self.start_time = pygame.time.get_ticks()  # Iniciar o timer do jogo
+                    last_spawn_time = pygame.time.get_ticks()  # Iniciar o timer de spawn de obstáculos
+                
+                # Desenhar o pássaro parado durante a contagem regressiva
+                self.bird.draw(self.screen)
+                
+                pygame.display.flip()
+                self.clock.tick(60)
+                continue  # Pular o resto do loop enquanto a contagem regressiva estiver ativa
+            
+            # Calcular tempo restante (só começa após a contagem regressiva)
             current_time = pygame.time.get_ticks()
             elapsed_time = current_time - self.start_time
             remaining_time = max(0, self.game_time - elapsed_time)
@@ -258,17 +326,12 @@ class Game:
             # Verificar se o tempo acabou
             if remaining_time <= 0 and not self.game_over:
                 self.game_over = True
+                self.game_completed = True  # Marcar que o jogo foi completado com sucesso quando o tempo acaba
             
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE:
-                        if not self.game_over:
-                            self.bird.jump()
-                        else:
-                            return
+            # Verificar se o jogador "zerou" o jogo
+            if self.score >= target_score and not self.game_over:
+                self.game_over = True
+                self.game_completed = True  # Marcar que o jogo foi completado com sucesso
             
             if not self.game_over:
                 # Atualizar pássaro
@@ -277,14 +340,32 @@ class Game:
                 # Gerar novos prédios
                 current_time = pygame.time.get_ticks()
                 if current_time - last_spawn_time > pipe_spawn_interval:
-                    self.pipes.append(Pipe(self.screen_width, self.screen_height, gap_size))
+                    # Criar um novo cano com a velocidade atual
+                    new_pipe = Pipe(self.screen_width, self.screen_height, gap_size)
+                    new_pipe.speed = pipe_speed
+                    self.pipes.append(new_pipe)
                     last_spawn_time = current_time
                     
-                    # Variar o intervalo de spawn para tornar o jogo mais interessante
-                    pipe_spawn_interval = random.randint(1200, 2000)
+                    # Ajustar dificuldade com base na pontuação
+                    if self.score > 0 and self.score % difficulty_increase_rate == 0:
+                        # Reduzir o tamanho do gap gradualmente
+                        gap_size = max(min_gap_size, gap_size - 8)
+                        
+                        # Reduzir o intervalo de spawn gradualmente
+                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 100)
+                        
+                        # Aumentar a velocidade gradualmente
+                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.3)
+                
+                # Ajustar dificuldade com base no tempo restante
+                # Aumentar a dificuldade mais rapidamente quando o tempo estiver acabando
+                time_factor = max(0, 1 - (remaining_time / self.game_time))  # 0 no início, 1 no final
+                current_pipe_speed = pipe_speed + (time_factor * 1.5)  # Velocidade aumenta com o tempo
                 
                 # Atualizar e verificar colisões com canos
                 for pipe in self.pipes[:]:
+                    # Aplicar a velocidade atual ajustada pelo tempo
+                    pipe.speed = current_pipe_speed
                     pipe.update()
                     
                     # Verificar colisão
@@ -317,6 +398,15 @@ class Game:
                 seconds_left = remaining_time // 1000
                 time_text = time_font.render(f"Tempo: {seconds_left}s", True, self.WHITE)
                 self.screen.blit(time_text, (self.screen_width - 150, 30))
+                
+                # Mostrar objetivo
+                target_text = time_font.render(f"Objetivo: {self.score}/{target_score}", True, self.WHITE)
+                self.screen.blit(target_text, (30, 30))
+                
+                # Mostrar nível de dificuldade atual
+                difficulty_level = min(10, 1 + self.score // difficulty_increase_rate)
+                difficulty_text = time_font.render(f"Nível: {difficulty_level}", True, self.WHITE)
+                self.screen.blit(difficulty_text, (30, 70))
             
             else:
                 # Tela de Game Over estilo GTA 5
@@ -325,40 +415,71 @@ class Game:
                 overlay.fill((0, 0, 0, 180))  # Preto semi-transparente
                 self.screen.blit(overlay, (0, 0))
                 
-                # Texto "MORRI ;-;" em vermelho grande
-                font_wasted = pygame.font.Font(None, 120)
-                wasted_text = font_wasted.render('MORRI ;-;', True, (255, 0, 0))  # Vermelho
-                
-                # Adicionar efeito de sombra ao texto
-                shadow_surface = pygame.Surface(wasted_text.get_size(), pygame.SRCALPHA)
-                shadow_surface.fill((0, 0, 0, 0))
-                shadow_surface.blit(wasted_text, (4, 4))
-                shadow_surface.set_alpha(150)
-                
-                # Centralizar o texto na tela
-                wasted_rect = wasted_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
-                shadow_rect = shadow_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
-                
-                # Desenhar sombra e texto
-                self.screen.blit(shadow_surface, shadow_rect)
-                self.screen.blit(wasted_text, wasted_rect)
+                if self.game_completed:
+                    # Texto de conclusão bem-sucedida
+                    if remaining_time <= 0:
+                        # Texto "PARABÉNS!" quando o tempo acaba
+                        font_completed = pygame.font.Font(None, 120)
+                        completed_text = font_completed.render('PARABÉNS!', True, (50, 150, 255))  # Azul
+                    else:
+                        # Texto "MISSÃO COMPLETA" quando atinge a pontuação alvo
+                        font_completed = pygame.font.Font(None, 120)
+                        completed_text = font_completed.render('MISSÃO COMPLETA', True, (0, 255, 0))  # Verde
+                    
+                    # Adicionar efeito de sombra ao texto
+                    shadow_surface = pygame.Surface(completed_text.get_size(), pygame.SRCALPHA)
+                    shadow_surface.fill((0, 0, 0, 0))
+                    shadow_surface.blit(completed_text, (4, 4))
+                    shadow_surface.set_alpha(150)
+                    
+                    # Centralizar o texto na tela
+                    completed_rect = completed_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                    shadow_rect = shadow_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                    
+                    # Desenhar sombra e texto
+                    self.screen.blit(shadow_surface, shadow_rect)
+                    self.screen.blit(completed_text, completed_rect)
+                else:
+                    # Texto "MORRI ;-;" em vermelho grande
+                    font_wasted = pygame.font.Font(None, 120)
+                    wasted_text = font_wasted.render('MORRI ;-;', True, (255, 0, 0))  # Vermelho
+                    
+                    # Adicionar efeito de sombra ao texto
+                    shadow_surface = pygame.Surface(wasted_text.get_size(), pygame.SRCALPHA)
+                    shadow_surface.fill((0, 0, 0, 0))
+                    shadow_surface.blit(wasted_text, (4, 4))
+                    shadow_surface.set_alpha(150)
+                    
+                    # Centralizar o texto na tela
+                    wasted_rect = wasted_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                    shadow_rect = shadow_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                    
+                    # Desenhar sombra e texto
+                    self.screen.blit(shadow_surface, shadow_rect)
+                    self.screen.blit(wasted_text, wasted_rect)
                 
                 # Mostrar pontuação
                 font_score = pygame.font.Font(None, 60)
-                score_text = font_score.render(f'Pontuação: {self.score}', True, self.WHITE)
+                
+                # Se o tempo acabou, validar a pontuação para 10 pontos
+                display_score = 10 if remaining_time <= 0 else self.score
+                
+                score_text = font_score.render(f'Pontuação: {display_score}/{target_score}', True, self.WHITE)
                 score_rect = score_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 50))
                 self.screen.blit(score_text, score_rect)
                 
                 # Texto para reiniciar
                 font_restart = pygame.font.Font(None, 36)
-                restart_text = font_restart.render('Pressione ESPAÇO para tentar novamente', True, self.WHITE)
+                restart_text = font_restart.render('Pressione R para tentar novamente', True, self.WHITE)
                 restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 120))
                 self.screen.blit(restart_text, restart_rect)
                 
-                # Mostrar causa da morte
+                # Mostrar causa da morte ou conclusão
                 cause_text = ""
-                if remaining_time <= 0:
-                    cause_text = "Tempo Esgotado!"
+                if self.game_completed:
+                    cause_text = "Você zerou o jogo!"
+                elif remaining_time <= 0:
+                    cause_text = "Tempo esgotado! Sua pontuação foi validada para 10 pontos!"
                 else:
                     cause_text = "Você bateu em um prédio!"
                 
@@ -808,12 +929,21 @@ class Game:
         self.game_time = 45000  # 45 segundos em milissegundos
         self.start_time = pygame.time.get_ticks()
         
-        # Inicializar obstáculos (prédios)
-        pipe_spawn_interval = 1500  # Intervalo em milissegundos
+        # Inicializar obstáculos (prédios) com valores iniciais mais fáceis
+        pipe_spawn_interval = 2000  # Intervalo maior no início (2 segundos)
         last_spawn_time = pygame.time.get_ticks()
         
-        # Aumentar o espaço entre os prédios para tornar o jogo mais jogável
-        gap_size = 200  # Espaço entre os prédios
+        # Começar com um espaço maior entre os prédios para facilitar
+        gap_size = 250  # Espaço maior entre os prédios no início
+        
+        # Variáveis para controle de dificuldade progressiva
+        difficulty_increase_rate = 5  # A cada quantos pontos a dificuldade aumenta
+        min_gap_size = 180  # Tamanho mínimo do espaço entre prédios
+        min_spawn_interval = 1200  # Intervalo mínimo de spawn
+        
+        # Velocidade inicial mais lenta
+        pipe_speed = 2
+        max_pipe_speed = 5
         
         while True:
             # Desenhar o background atual
@@ -828,6 +958,7 @@ class Game:
             # Verificar se o tempo acabou
             if remaining_time <= 0 and not self.game_over:
                 self.game_over = True
+                self.game_completed = True  # Marcar que o jogo foi completado com sucesso quando o tempo acaba
             
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -837,8 +968,8 @@ class Game:
                     if event.key == K_SPACE:
                         if not self.game_over:
                             self.bird.jump()
-                        else:
-                            return
+                    elif event.key == K_r and self.game_over:
+                        return
             
             if not self.game_over:
                 # Atualizar pássaro
@@ -847,11 +978,22 @@ class Game:
                 # Gerar novos prédios
                 current_time = pygame.time.get_ticks()
                 if current_time - last_spawn_time > pipe_spawn_interval:
-                    self.pipes.append(Pipe(self.screen_width, self.screen_height, gap_size))
+                    # Criar um novo cano com a velocidade atual
+                    new_pipe = Pipe(self.screen_width, self.screen_height, gap_size)
+                    new_pipe.speed = pipe_speed
+                    self.pipes.append(new_pipe)
                     last_spawn_time = current_time
                     
-                    # Variar o intervalo de spawn para tornar o jogo mais interessante
-                    pipe_spawn_interval = random.randint(1200, 2000)
+                    # Ajustar dificuldade com base na pontuação
+                    if self.score > 0 and self.score % difficulty_increase_rate == 0:
+                        # Reduzir o tamanho do gap gradualmente
+                        gap_size = max(min_gap_size, gap_size - 5)
+                        
+                        # Reduzir o intervalo de spawn gradualmente
+                        pipe_spawn_interval = max(min_spawn_interval, pipe_spawn_interval - 50)
+                        
+                        # Aumentar a velocidade gradualmente
+                        pipe_speed = min(max_pipe_speed, pipe_speed + 0.2)
                 
                 # Atualizar e verificar colisões com canos
                 for pipe in self.pipes[:]:
@@ -887,6 +1029,11 @@ class Game:
                 seconds_left = remaining_time // 1000
                 time_text = time_font.render(f"Tempo: {seconds_left}s", True, self.WHITE)
                 self.screen.blit(time_text, (self.screen_width - 150, 30))
+                
+                # Mostrar nível de dificuldade atual
+                difficulty_level = min(10, 1 + self.score // difficulty_increase_rate)
+                difficulty_text = time_font.render(f"Nível: {difficulty_level}", True, self.WHITE)
+                self.screen.blit(difficulty_text, (30, 30))
             
             else:
                 # Tela de Game Over estilo GTA 5
@@ -921,14 +1068,17 @@ class Game:
                 
                 # Texto para reiniciar
                 font_restart = pygame.font.Font(None, 36)
-                restart_text = font_restart.render('Pressione ESPAÇO para tentar novamente', True, self.WHITE)
+                restart_text = font_restart.render('Pressione R para tentar novamente', True, self.WHITE)
                 restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 120))
                 self.screen.blit(restart_text, restart_rect)
                 
-                # Mostrar causa da morte
+                # Mostrar causa da morte ou conclusão
                 cause_text = ""
-                if remaining_time <= 0:
-                    cause_text = "Tempo Esgotado!"
+                if self.game_completed:
+                    if remaining_time <= 0:
+                        cause_text = "Tempo esgotado! Sua pontuação foi validada para 10 pontos!"
+                    else:
+                        cause_text = "Você zerou o jogo!"
                 else:
                     cause_text = "Você bateu em um prédio!"
                 
