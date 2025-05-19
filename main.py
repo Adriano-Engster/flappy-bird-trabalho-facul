@@ -210,6 +210,10 @@ class Game:
             self.backgrounds['background1'] = black_surface
             self.animated_backgrounds['background1'] = False
 
+        # Garantir que o background inicial existe
+        if self.settings['background'] not in self.backgrounds:
+            self.settings['background'] = list(self.backgrounds.keys())[0]
+
     def update_animated_background(self, bg_name):
         if not self.animated_backgrounds.get(bg_name, False):
             return self.backgrounds[bg_name]
